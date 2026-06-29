@@ -1,0 +1,33 @@
+---
+# ==========================================================
+# Harden all Kubernetes nodes
+# ==========================================================
+
+- name: Harden all Kubernetes nodes
+  hosts: all
+  become: true
+
+  roles:
+    - hardening
+
+# ==========================================================
+# Install K3s Control Plane
+# ==========================================================
+
+- name: Install K3s Server
+  hosts: server
+  become: true
+
+  roles:
+    - k3s-server
+
+# ==========================================================
+# Join Worker Nodes to the Cluster
+# ==========================================================
+
+- name: Install K3s Agents
+  hosts: agents
+  become: true
+
+  roles:
+    - k3s-agent

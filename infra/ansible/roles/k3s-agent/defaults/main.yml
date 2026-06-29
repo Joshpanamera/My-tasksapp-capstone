@@ -1,0 +1,6 @@
+---
+# Control plane private IP
+k3s_server_ip: ""
+
+# Cluster join token
+k3s_server_token: ""

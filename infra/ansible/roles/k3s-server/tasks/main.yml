@@ -1,0 +1,56 @@
+---
+# ==========================================================
+# Install K3s Server (Control Plane)
+# ==========================================================
+
+- name: Install k3s server
+  ansible.builtin.shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --disable traefik --write-kubeconfig-mode 644 --tls-san={{ ansible_host }}" sh -
+  args:
+    creates: /usr/local/bin/k3s
+
+# ==========================================================
+# Ensure k3s service is running
+# ==========================================================
+
+- name: Ensure k3s service is enabled and running
+  ansible.builtin.service:
+    name: k3s
+    state: started
+    enabled: true
+
+# ==========================================================
+# Read the cluster join token
+# ==========================================================
+
+- name: Read k3s node token
+  ansible.builtin.slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: k3s_node_token
+
+# ==========================================================
+# Decode the token for worker nodes
+# ==========================================================
+
+- name: Store decoded k3s node token
+  ansible.builtin.set_fact:
+    k3s_server_token: "{{ k3s_node_token.content | b64decode }}"
+    cacheable: true
+
+# ==========================================================
+# Fetch kubeconfig to local machine
+# ==========================================================
+
+- name: Fetch kubeconfig from control plane
+  ansible.builtin.fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: kubeconfig/k3s.yaml
+    flat: true
+
+# ==========================================================
+# Display k3s node token (debug)
+# ==========================================================
+
+- name: Display k3s node token
+  ansible.builtin.debug:
+    var: k3s_server_token
