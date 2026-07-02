@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: taskapp-db-migration
+  namespace: taskapp
+  labels:
+    app: migration
+    tier: database
+
+spec:
+  backoffLimit: 3
+
+  template:
+    metadata:
+      labels:
+        app: migration
+        tier: database
+
+    spec:
+      restartPolicy: Never
+
+      containers:
+        - name: migration
+          image: ghcr.io/joshpanamera/taskapp-backend:v3
+          imagePullPolicy: Always
+
+          command:
+            - python
+            - -m
+            - flask
+            - db
+            - upgrade
+
+          env:
+            - name: FLASK_APP
+              value: run.py
+
+          envFrom:
+            - secretRef:
+                name: taskapp-secret
+
+            - configMapRef:
+                name: taskapp-config
